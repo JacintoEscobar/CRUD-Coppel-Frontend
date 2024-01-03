@@ -31,7 +31,7 @@ const TableEmpleados = () => {
             <table id="table-empleados" className="table">
                 <thead>
                     <tr>
-                        <th scope="col">ID</th>
+                        <th scope="col">IdEmpleado</th>
                         <th scope="col">Nombre</th>
                         <th scope="col">Apellido</th>
                         <th scope="col">Puesto</th>

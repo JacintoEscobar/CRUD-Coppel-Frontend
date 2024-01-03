@@ -31,7 +31,7 @@ const TablePolizas = () => {
             <table id="table-polizas" className="table">
                 <thead>
                     <tr>
-                        <th scope="col">ID</th>
+                        <th scope="col">IdPoliza</th>
                         <th scope="col">Cantidad</th>
                         <th scope="col">Fecha</th>
                         <th scope="col">Acciones</th>
