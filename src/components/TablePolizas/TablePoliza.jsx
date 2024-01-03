@@ -291,6 +291,8 @@ const TablePolizas = () => {
                         <th scope="col">IdPoliza</th>
                         <th scope="col">Cantidad</th>
                         <th scope="col">Fecha</th>
+                        <th scope="col">Empleado</th>
+                        <th scope="col">Puesto</th>
                         <th scope="col">Acciones</th>
                     </tr>
                 </thead>
@@ -302,6 +304,8 @@ const TablePolizas = () => {
                                     <th scope="row">{poliza.idPoliza}</th>
                                     <td>{poliza.cantidad}</td>
                                     <td>{poliza.fecha}</td>
+                                    <td>{poliza.empleado.nombre}</td>
+                                    <td>{poliza.empleado.puesto}</td>
                                     <td>
                                         <Button
                                             variant="warning"
