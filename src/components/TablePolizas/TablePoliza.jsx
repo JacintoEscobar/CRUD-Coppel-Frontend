@@ -1,10 +1,30 @@
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faPencil, faTrash } from "@fortawesome/free-solid-svg-icons";
+import Modal from "react-bootstrap/Modal";
+import Button from "react-bootstrap/Button";
+import Form from "react-bootstrap/Form";
+import Row from "react-bootstrap/Row";
 import Swal from "sweetalert2";
+import $ from "jquery";
+import "./table-poliza.css";
 
 const TablePolizas = () => {
     const [polizas, setPolizas] = useState(null);
+    const [mostrarForulario, setMostrarFormulario] = useState(false);
+    const [validacionFormulario, setValidacionFormulario] = useState(false);
+    const [empleados, setEmpleados] = useState(null);
+    const [inventarios, setInventarios] = useState(null);
+
+    const fecha = new Date();
+    const dia = fecha.getDate() < 10 ? `0${fecha.getDate()}` : fecha.getDate();
+    const mes =
+        fecha.getMonth() + 1 < 10
+            ? `0${fecha.getMonth() + 1}`
+            : fecha.getDate() + 1;
+
+    const mostrarFormularioHandle = () => setMostrarFormulario(true);
+    const ocultarFormularioHandle = () => setMostrarFormulario(false);
 
     const getPolizas = async () => {
         try {
@@ -30,6 +50,54 @@ const TablePolizas = () => {
         }
     };
 
+    const getEmpleados = async () => {
+        try {
+            const response = await fetch("http://localhost:8080/empleado", {
+                method: "GET",
+            }).then((response) => response.json());
+
+            if (response.meta.status === "FAILURE") {
+                return Swal.fire({
+                    icon: "error",
+                    title: "¡ERROR!",
+                    text: response.data.mensaje.idMensaje,
+                });
+            }
+
+            if (response.meta.status === "OK" && response.data.mensaje) {
+                return setPolizas(response.data.mensaje.idMensaje);
+            }
+
+            setEmpleados(response.data);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const getInventarios = async () => {
+        try {
+            const response = await fetch("http://localhost:8080/inventario", {
+                method: "GET",
+            }).then((response) => response.json());
+
+            if (response.meta.status === "FAILURE") {
+                return Swal.fire({
+                    icon: "error",
+                    title: "¡ERROR!",
+                    text: response.data.mensaje.idMensaje,
+                });
+            }
+
+            if (response.meta.status === "OK" && response.data.mensaje) {
+                return setPolizas(response.data.mensaje.idMensaje);
+            }
+
+            setInventarios(response.data);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
     const eliminarPolizaHandler = async (idPoliza) => {
         try {
             const respuesta = await fetch(
@@ -39,14 +107,19 @@ const TablePolizas = () => {
                 }
             ).then((response) => response.json());
 
-            let typeResponse = "success";
-            if (respuesta.meta.status === "FAILURE") {
-                typeResponse = "error";
+            if (respuesta.meta.status === "OK") {
+                return Swal.fire({
+                    icon: "success",
+                    title: "HECHO!",
+                    text: respuesta.data.mensaje.idMensaje,
+                }).then(() => {
+                    window.location.reload();
+                });
             }
 
             return Swal.fire({
-                icon: typeResponse,
-                title: "¡HECHO!",
+                icon: "error",
+                title: "ERROR!",
                 text: respuesta.data.mensaje.idMensaje,
             });
         } catch (error) {
@@ -54,16 +127,74 @@ const TablePolizas = () => {
         }
     };
 
+    const crearPoliza = async () => {
+        const body = {
+            cantidad: $("#cantidad").val(),
+            fecha: $("#fecha").val(),
+            empleado: {
+                idEmpleado: $("#empleados-select").val(),
+            },
+            inventario: {
+                sku: $("#inventarios-select").val(),
+            },
+        };
+
+        fetch("http://localhost:8080/poliza/crear", {
+            method: "POST",
+            body: JSON.stringify(body),
+            headers: {
+                "Content-Type": "application/json",
+            },
+        })
+            .then((response) => response.json())
+            .then((respuesta) => {
+                let type = "success";
+                let title = "¡HECHO!";
+                if (respuesta.meta.status === "OK") {
+                    return Swal.fire({
+                        icon: "success",
+                        title: "¡HECHO!",
+                        text: "Póliza creada exitosamente",
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                }
+                return Swal.fire({
+                    icon: "error",
+                    title: "ERROR!",
+                    text: respuesta.data.mensaje.idMensaje,
+                });
+            })
+            .catch((error) => console.error(error));
+    };
+
+    const crearPolizaHandle = (e) => {
+        const form = e.currentTarget;
+        e.preventDefault();
+        if (form.checkValidity() === false) {
+            e.stopPropagation();
+        }
+        crearPoliza();
+        setValidacionFormulario(true);
+    };
+
     useEffect(() => {
         getPolizas();
+        getEmpleados();
+        getInventarios();
     }, []);
 
     return (
         <>
             <section id="menu-seccion">
-                <button className="btn btn-primary btn-sm" id="nueva-poliza">
+                <Button
+                    variant="primary"
+                    size="sm"
+                    id="nueva-poliza"
+                    onClick={mostrarFormularioHandle}
+                >
                     <FontAwesomeIcon icon={faPlus} />
-                </button>
+                </Button>
                 <h2 id="titulo-seccion">Pólizas</h2>
             </section>
             <table id="table-polizas" className="table">
@@ -84,23 +215,25 @@ const TablePolizas = () => {
                                     <td>{poliza.cantidad}</td>
                                     <td>{poliza.fecha}</td>
                                     <td>
-                                        <button
+                                        <Button
+                                            variant="warning"
+                                            size="sm"
                                             id="button-editar"
-                                            className="btn btn-warning btn-sm"
                                         >
                                             <FontAwesomeIcon icon={faPencil} />
-                                        </button>
-                                        <button
+                                        </Button>
+                                        <Button
+                                            variant="danger"
+                                            size="sm"
                                             id="button-eliminar"
-                                            className="btn btn-danger btn-sm"
-                                            onClick={() =>
+                                            onClick={() => {
                                                 eliminarPolizaHandler(
                                                     poliza.idPoliza
-                                                )
-                                            }
+                                                );
+                                            }}
                                         >
                                             <FontAwesomeIcon icon={faTrash} />
-                                        </button>
+                                        </Button>
                                     </td>
                                 </tr>
                             );
@@ -114,6 +247,97 @@ const TablePolizas = () => {
                     )}
                 </tbody>
             </table>
+
+            <Modal
+                show={mostrarForulario}
+                onHide={ocultarFormularioHandle}
+                backdrop="static"
+                keyboard={false}
+                size="lg"
+            >
+                <Modal.Header closeButton>
+                    <Modal.Title>Nueva póliza</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form
+                        noValidate
+                        validated={validacionFormulario}
+                        id="crear-poliza-form"
+                        onSubmit={crearPolizaHandle}
+                    >
+                        <Row className="mb-3 mx-2">
+                            <Form.Label>Cantidad</Form.Label>
+                            <Form.Control
+                                required
+                                type="number"
+                                min={1}
+                                placeholder="Cantidad"
+                                id="cantidad"
+                            />
+                            <Form.Control.Feedback type="invalid">
+                                Selecciona una cantidad correcta
+                            </Form.Control.Feedback>
+                        </Row>
+                        <Row className="mb-3 mx-2">
+                            <Form.Label>Fecha</Form.Label>
+                            <Form.Control
+                                required
+                                type="date"
+                                placeholder="Fecha"
+                                min={"2001-01-01"}
+                                max={`${fecha.getFullYear()}-${mes}-${dia}`}
+                                id="fecha"
+                            />
+                            <Form.Control.Feedback type="invalid">
+                                Selecciona una fecha correcta
+                            </Form.Control.Feedback>
+                        </Row>
+                        <Row className="mb-3 mx-2">
+                            <Form.Label>Empleado</Form.Label>
+                            <Form.Select id="empleados-select">
+                                {empleados &&
+                                    empleados.map((empleado) => {
+                                        return (
+                                            <option
+                                                key={empleado.idEmpleado}
+                                                value={empleado.idEmpleado}
+                                            >
+                                                {empleado.nombre}
+                                            </option>
+                                        );
+                                    })}
+                            </Form.Select>
+                            <Form.Control.Feedback type="invalid">
+                                Selecciona un empleado correcto
+                            </Form.Control.Feedback>
+                        </Row>
+                        <Row className="mb-3 mx-2">
+                            <Form.Label>Inventario</Form.Label>
+                            <Form.Select id="inventarios-select">
+                                {inventarios &&
+                                    inventarios.map((inventario) => {
+                                        return (
+                                            <option
+                                                key={inventario.sku}
+                                                value={inventario.sku}
+                                            >
+                                                {inventario.nombre}
+                                            </option>
+                                        );
+                                    })}
+                            </Form.Select>
+                            <Form.Control.Feedback type="invalid">
+                                Selecciona un inventario correcto
+                            </Form.Control.Feedback>
+                        </Row>
+                        <div id="div-button-crear-poliza">
+                            <Button type="submit" className="m-2">
+                                Crear
+                            </Button>
+                        </div>
+                    </Form>
+                </Modal.Body>
+            </Modal>
         </>
     );
 };
