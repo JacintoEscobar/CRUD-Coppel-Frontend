@@ -97,7 +97,6 @@ const TableEmpleados = () => {
                         <th scope="col">Nombre</th>
                         <th scope="col">Apellido</th>
                         <th scope="col">Puesto</th>
-                        <th scope="col">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -109,20 +108,6 @@ const TableEmpleados = () => {
                                     <td>{empleado.nombre}</td>
                                     <td>{empleado.apellido}</td>
                                     <td>{empleado.puesto}</td>
-                                    <td>
-                                        <button
-                                            id="button-editar"
-                                            className="btn btn-warning btn-sm"
-                                        >
-                                            <FontAwesomeIcon icon={faPencil} />
-                                        </button>
-                                        <button
-                                            id="button-eliminar"
-                                            className="btn btn-danger btn-sm"
-                                        >
-                                            <FontAwesomeIcon icon={faTrash} />
-                                        </button>
-                                    </td>
                                 </tr>
                             );
                         })

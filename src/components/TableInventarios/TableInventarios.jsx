@@ -95,7 +95,6 @@ const TableInventarios = () => {
                         <th scope="col">SKU</th>
                         <th scope="col">Nombre</th>
                         <th scope="col">Cantidad</th>
-                        <th scope="col">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -106,20 +105,6 @@ const TableInventarios = () => {
                                     <th scope="row">{inventario.sku}</th>
                                     <td>{inventario.nombre}</td>
                                     <td>{inventario.cantidad}</td>
-                                    <td>
-                                        <button
-                                            id="button-editar"
-                                            className="btn btn-warning btn-sm"
-                                        >
-                                            <FontAwesomeIcon icon={faPencil} />
-                                        </button>
-                                        <button
-                                            id="button-eliminar"
-                                            className="btn btn-danger btn-sm"
-                                        >
-                                            <FontAwesomeIcon icon={faTrash} />
-                                        </button>
-                                    </td>
                                 </tr>
                             );
                         })

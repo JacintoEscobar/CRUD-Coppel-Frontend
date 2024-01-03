@@ -10,10 +10,16 @@ import $ from "jquery";
 
 const TablePolizas = () => {
     const [polizas, setPolizas] = useState(null);
-    const [mostrarForulario, setMostrarFormulario] = useState(false);
-    const [validacionFormulario, setValidacionFormulario] = useState(false);
+    const [mostrarFormularioCrear, setMostrarFormularioCrear] = useState(false);
+    const [mostrarFormularioEditar, setMostrarFormularioEditar] =
+        useState(false);
+    const [validacionFormularioCrear, setValidacionFormularioCrear] =
+        useState(false);
+    const [validacionFormularioEditar, setValidacionFormularioEditar] =
+        useState(false);
     const [empleados, setEmpleados] = useState(null);
     const [inventarios, setInventarios] = useState(null);
+    const [polizaEditar, setPolizaEditar] = useState(null);
 
     const fecha = new Date();
     const dia = fecha.getDate() < 10 ? `0${fecha.getDate()}` : fecha.getDate();
@@ -22,8 +28,13 @@ const TablePolizas = () => {
             ? `0${fecha.getMonth() + 1}`
             : fecha.getDate() + 1;
 
-    const mostrarFormularioHandle = () => setMostrarFormulario(true);
-    const ocultarFormularioHandle = () => setMostrarFormulario(false);
+    const mostrarFormularioCrearHandle = () => setMostrarFormularioCrear(true);
+    const ocultarFormularioCrearHandle = () => setMostrarFormularioCrear(false);
+
+    const mostrarFormularioEditarHandle = () =>
+        setMostrarFormularioEditar(true);
+    const ocultarFormularioEditarHandle = () =>
+        setMostrarFormularioEditar(false);
 
     const getPolizas = async () => {
         try {
@@ -126,6 +137,85 @@ const TablePolizas = () => {
         }
     };
 
+    const editarPolizaHandle = async (idPoliza) => {
+        try {
+            const respuesta = await fetch(
+                `http://localhost:8080/poliza/${idPoliza}`,
+                {
+                    method: "GET",
+                }
+            ).then((response) => response.json());
+
+            if (respuesta.meta.status === "OK") {
+                setPolizaEditar(respuesta.data);
+                setMostrarFormularioEditar(true);
+                return;
+            }
+
+            return Swal.fire({
+                icon: "error",
+                title: "ERROR!",
+                text: respuesta.data.mensaje.idMensaje,
+            });
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const submitEditarPolizaHandle = (e) => {
+        const form = e.currentTarget;
+        e.preventDefault();
+        if (form.checkValidity() === false) {
+            e.stopPropagation();
+        }
+        actualizarPoliza();
+        setValidacionFormularioEditar(true);
+    };
+
+    const actualizarPoliza = () => {
+        const body = {
+            idPoliza: $("#id-poliza").val(),
+            cantidad: $("#cantidad").val(),
+            empleado: {
+                nombre: $("#nombre-empleado").val(),
+                apellido: $("#apellido-empleado").val(),
+            },
+            inventario: {
+                sku: $("#inventarios-select").val(),
+            },
+        };
+
+        fetch(
+            `http://localhost:8080/poliza/actualizar-campos/${body.idPoliza}`,
+            {
+                method: "PUT",
+                body: JSON.stringify(body),
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            }
+        )
+            .then((response) => response.json())
+            .then((respuesta) => {
+                if (respuesta.meta.status === "OK") {
+                    return Swal.fire({
+                        icon: "success",
+                        title: "¡HECHO!",
+                        text: respuesta.data.mensaje.idMensaje,
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                }
+
+                return Swal.fire({
+                    icon: "error",
+                    title: "ERROR!",
+                    text: respuesta.data.mensaje.idMensaje,
+                });
+            })
+            .catch((error) => console.error(error));
+    };
+
     const crearPoliza = async () => {
         const body = {
             cantidad: $("#cantidad").val(),
@@ -173,7 +263,7 @@ const TablePolizas = () => {
             e.stopPropagation();
         }
         crearPoliza();
-        setValidacionFormulario(true);
+        setValidacionFormularioCrear(true);
     };
 
     useEffect(() => {
@@ -189,7 +279,7 @@ const TablePolizas = () => {
                     variant="primary"
                     size="sm"
                     id="nueva-poliza"
-                    onClick={mostrarFormularioHandle}
+                    onClick={mostrarFormularioCrearHandle}
                 >
                     <FontAwesomeIcon icon={faPlus} />
                 </Button>
@@ -217,6 +307,11 @@ const TablePolizas = () => {
                                             variant="warning"
                                             size="sm"
                                             id="button-editar"
+                                            onClick={() => {
+                                                editarPolizaHandle(
+                                                    poliza.idPoliza
+                                                );
+                                            }}
                                         >
                                             <FontAwesomeIcon icon={faPencil} />
                                         </Button>
@@ -247,8 +342,8 @@ const TablePolizas = () => {
             </table>
 
             <Modal
-                show={mostrarForulario}
-                onHide={ocultarFormularioHandle}
+                show={mostrarFormularioCrear}
+                onHide={ocultarFormularioCrearHandle}
                 backdrop="static"
                 keyboard={false}
                 size="lg"
@@ -259,7 +354,7 @@ const TablePolizas = () => {
                 <Modal.Body>
                     <Form
                         noValidate
-                        validated={validacionFormulario}
+                        validated={validacionFormularioCrear}
                         id="crear-poliza-form"
                         onSubmit={crearPolizaHandle}
                     >
@@ -331,6 +426,116 @@ const TablePolizas = () => {
                         <div id="div-buttons-crear">
                             <Button type="submit" className="m-2">
                                 Crear
+                            </Button>
+                        </div>
+                    </Form>
+                </Modal.Body>
+            </Modal>
+
+            <Modal
+                show={mostrarFormularioEditar}
+                onHide={ocultarFormularioEditarHandle}
+                backdrop="static"
+                keyboard={false}
+                size="lg"
+            >
+                <Modal.Header closeButton>
+                    <Modal.Title>Editar póliza</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form
+                        noValidate
+                        validated={validacionFormularioEditar}
+                        id="crear-poliza-form"
+                        onSubmit={submitEditarPolizaHandle}
+                    >
+                        <Row className="mb-3 mx-2">
+                            <Form.Label>ID</Form.Label>
+                            <Form.Control
+                                required
+                                type="number"
+                                id="id-poliza"
+                                readOnly
+                                defaultValue={
+                                    polizaEditar && polizaEditar.poliza.idPoliza
+                                }
+                            />
+                        </Row>
+                        <Row className="mb-3 mx-2">
+                            <Form.Label>Cantidad</Form.Label>
+                            <Form.Control
+                                required
+                                type="number"
+                                min={1}
+                                placeholder="Cantidad"
+                                id="cantidad"
+                                defaultValue={
+                                    polizaEditar && polizaEditar.poliza.cantidad
+                                }
+                            />
+                            <Form.Control.Feedback type="invalid">
+                                Selecciona una cantidad correcta
+                            </Form.Control.Feedback>
+                        </Row>
+                        <Row className="mb-3 mx-2">
+                            <Form.Label>Nombre empleado</Form.Label>
+                            <Form.Control
+                                required
+                                type="text"
+                                placeholder="Nombre empleado"
+                                id="nombre-empleado"
+                                defaultValue={
+                                    polizaEditar && polizaEditar.empleado.nombre
+                                }
+                            />
+                            <Form.Control.Feedback type="invalid">
+                                Escribe un nombre correcto
+                            </Form.Control.Feedback>
+                        </Row>
+                        <Row className="mb-3 mx-2">
+                            <Form.Label>Apellido empleado</Form.Label>
+                            <Form.Control
+                                required
+                                type="text"
+                                placeholder="Apellido empleado"
+                                id="apellido-empleado"
+                                defaultValue={
+                                    polizaEditar &&
+                                    polizaEditar.empleado.apellido
+                                }
+                            />
+                            <Form.Control.Feedback type="invalid">
+                                Escribe un nombre correcto
+                            </Form.Control.Feedback>
+                        </Row>
+                        <Row className="mb-3 mx-2">
+                            <Form.Label>Inventario</Form.Label>
+                            <Form.Select
+                                id="inventarios-select"
+                                defaultValue={
+                                    polizaEditar &&
+                                    polizaEditar.detalleArticulo.sku
+                                }
+                            >
+                                {inventarios &&
+                                    inventarios.map((inventario) => {
+                                        return (
+                                            <option
+                                                key={inventario.sku}
+                                                value={inventario.sku}
+                                            >
+                                                {inventario.nombre}
+                                            </option>
+                                        );
+                                    })}
+                            </Form.Select>
+                            <Form.Control.Feedback type="invalid">
+                                Selecciona un inventario correcto
+                            </Form.Control.Feedback>
+                        </Row>
+                        <div id="div-buttons-crear">
+                            <Button type="submit" className="m-2">
+                                Actualizar
                             </Button>
                         </div>
                     </Form>
