@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faPencil, faTrash } from "@fortawesome/free-solid-svg-icons";
-import "./table-polizas.css";
 
 const TablePolizas = () => {
     const [polizas, setPolizas] = useState(null);
@@ -23,11 +22,11 @@ const TablePolizas = () => {
 
     return (
         <>
-            <section id="menu-polizas">
-                <button className="btn btn-primary btn-sm" id="nuevo-polizas">
+            <section id="menu-seccion">
+                <button className="btn btn-primary btn-sm" id="nueva-poliza">
                     <FontAwesomeIcon icon={faPlus} />
                 </button>
-                <h2 id="titulo-polizas">Pólizas</h2>
+                <h2 id="titulo-seccion">Pólizas</h2>
             </section>
             <table id="table-polizas" className="table">
                 <thead>
