@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faPencil, faTrash } from "@fortawesome/free-solid-svg-icons";
+import Swal from "sweetalert2";
 
 const TablePolizas = () => {
     const [polizas, setPolizas] = useState(null);
@@ -10,7 +11,44 @@ const TablePolizas = () => {
             const data = await fetch("http://localhost:8080/poliza", {
                 method: "GET",
             }).then((response) => response.json());
+
+            if (data.meta.status === "FAILURE") {
+                return Swal.fire({
+                    icon: "error",
+                    title: "¡ERROR!",
+                    text: data.data.mensaje.idMensaje,
+                });
+            }
+
+            if (data.meta.status === "OK" && data.data.mensaje) {
+                return setPolizas(data.data.mensaje.idMensaje);
+            }
+
             setPolizas(data.data);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const eliminarPolizaHandler = async (idPoliza) => {
+        try {
+            const respuesta = await fetch(
+                `http://localhost:8080/poliza/eliminar/${idPoliza}`,
+                {
+                    method: "DELETE",
+                }
+            ).then((response) => response.json());
+
+            let typeResponse = "success";
+            if (respuesta.meta.status === "FAILURE") {
+                typeResponse = "error";
+            }
+
+            return Swal.fire({
+                icon: typeResponse,
+                title: "¡HECHO!",
+                text: respuesta.data.mensaje.idMensaje,
+            });
         } catch (error) {
             console.error(error);
         }
@@ -38,7 +76,7 @@ const TablePolizas = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {polizas ? (
+                    {polizas && typeof polizas !== "string" ? (
                         polizas.map((poliza) => {
                             return (
                                 <tr key={poliza.idPoliza}>
@@ -55,6 +93,11 @@ const TablePolizas = () => {
                                         <button
                                             id="button-eliminar"
                                             className="btn btn-danger btn-sm"
+                                            onClick={() =>
+                                                eliminarPolizaHandler(
+                                                    poliza.idPoliza
+                                                )
+                                            }
                                         >
                                             <FontAwesomeIcon icon={faTrash} />
                                         </button>
@@ -65,7 +108,7 @@ const TablePolizas = () => {
                     ) : (
                         <tr>
                             <td colSpan={4} align="center">
-                                Cargando datos...
+                                {polizas}
                             </td>
                         </tr>
                     )}
