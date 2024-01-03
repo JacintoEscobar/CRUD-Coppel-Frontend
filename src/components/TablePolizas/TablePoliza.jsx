@@ -7,7 +7,6 @@ import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
 import Swal from "sweetalert2";
 import $ from "jquery";
-import "./table-poliza.css";
 
 const TablePolizas = () => {
     const [polizas, setPolizas] = useState(null);
@@ -159,6 +158,8 @@ const TablePolizas = () => {
                         window.location.reload();
                     });
                 }
+
+                setValidacionFormulario(false);
                 return Swal.fire({
                     icon: "error",
                     title: "ERROR!",
@@ -330,7 +331,7 @@ const TablePolizas = () => {
                                 Selecciona un inventario correcto
                             </Form.Control.Feedback>
                         </Row>
-                        <div id="div-button-crear-poliza">
+                        <div id="div-buttons-crear">
                             <Button type="submit" className="m-2">
                                 Crear
                             </Button>

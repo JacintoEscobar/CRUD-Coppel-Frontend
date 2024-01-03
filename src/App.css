@@ -21,3 +21,8 @@ main {
 #button-eliminar {
     margin-left: 0.2rem;
 }
+
+#div-buttons-crear {
+    display: flex !important;
+    flex-direction: row-reverse !important;
+}
