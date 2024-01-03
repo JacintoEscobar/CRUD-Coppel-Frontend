@@ -147,8 +147,6 @@ const TablePolizas = () => {
         })
             .then((response) => response.json())
             .then((respuesta) => {
-                let type = "success";
-                let title = "¡HECHO!";
                 if (respuesta.meta.status === "OK") {
                     return Swal.fire({
                         icon: "success",
@@ -159,7 +157,6 @@ const TablePolizas = () => {
                     });
                 }
 
-                setValidacionFormulario(false);
                 return Swal.fire({
                     icon: "error",
                     title: "ERROR!",

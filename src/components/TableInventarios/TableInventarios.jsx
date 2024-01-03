@@ -53,8 +53,6 @@ const TableInventarios = () => {
         })
             .then((response) => response.json())
             .then((respuesta) => {
-                let type = "success";
-                let title = "¡HECHO!";
                 if (respuesta.meta.status === "OK") {
                     return Swal.fire({
                         icon: "success",
@@ -64,6 +62,7 @@ const TableInventarios = () => {
                         window.location.reload();
                     });
                 }
+
                 return Swal.fire({
                     icon: "error",
                     title: "ERROR!",

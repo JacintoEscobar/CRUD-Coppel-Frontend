@@ -1,9 +1,20 @@
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faPencil, faTrash } from "@fortawesome/free-solid-svg-icons";
+import Modal from "react-bootstrap/Modal";
+import Button from "react-bootstrap/Button";
+import Form from "react-bootstrap/Form";
+import Row from "react-bootstrap/Row";
+import Swal from "sweetalert2";
+import $ from "jquery";
 
 const TableEmpleados = () => {
     const [empleados, setEmpleados] = useState(null);
+    const [mostrarFormulario, setMostrarFormulario] = useState(null);
+    const [validacionFormulario, setValidacionFormulario] = useState(false);
+
+    const mostrarFormularioHandle = () => setMostrarFormulario(true);
+    const ocultarFormularioHandle = () => setMostrarFormulario(false);
 
     const getEmpleados = async () => {
         try {
@@ -16,6 +27,52 @@ const TableEmpleados = () => {
         }
     };
 
+    const crearEmpleadoHandle = (e) => {
+        const form = e.currentTarget;
+        e.preventDefault();
+        if (form.checkValidity() === false) {
+            e.stopPropagation();
+        }
+
+        crearEmpleado();
+        setValidacionFormulario(true);
+    };
+
+    const crearEmpleado = async () => {
+        const body = {
+            nombre: $("#nombre").val(),
+            apellido: $("#apellido").val(),
+            puesto: $("#puesto").val(),
+        };
+
+        fetch("http://localhost:8080/empleado/crear", {
+            method: "POST",
+            body: JSON.stringify(body),
+            headers: {
+                "Content-Type": "application/json",
+            },
+        })
+            .then((response) => response.json())
+            .then((respuesta) => {
+                if (respuesta.meta.status === "OK") {
+                    return Swal.fire({
+                        icon: "success",
+                        title: "¡HECHO!",
+                        text: "Empleado creado exitosamente",
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                }
+
+                return Swal.fire({
+                    icon: "error",
+                    title: "ERROR!",
+                    text: respuesta.data.mensaje.idMensaje,
+                });
+            })
+            .catch((error) => console.error(error));
+    };
+
     useEffect(() => {
         getEmpleados();
     }, []);
@@ -23,9 +80,14 @@ const TableEmpleados = () => {
     return (
         <>
             <section id="menu-seccion">
-                <button className="btn btn-primary btn-sm" id="nuevo-empleado">
+                <Button
+                    variant="primary"
+                    size="sm"
+                    id="nuevo-empleado"
+                    onClick={mostrarFormularioHandle}
+                >
                     <FontAwesomeIcon icon={faPlus} />
-                </button>
+                </Button>
                 <h2 id="titulo-seccion">Empleados</h2>
             </section>
             <table id="table-empleados" className="table">
@@ -73,6 +135,53 @@ const TableEmpleados = () => {
                     )}
                 </tbody>
             </table>
+
+            <Modal
+                show={mostrarFormulario}
+                onHide={ocultarFormularioHandle}
+                backdrop="static"
+                keyboard={false}
+                size="lg"
+            >
+                <Modal.Header closeButton>
+                    <Modal.Title>Nuevo empleado</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form
+                        noValidate
+                        validated={validacionFormulario}
+                        id="crear-empleado-form"
+                        onSubmit={crearEmpleadoHandle}
+                    >
+                        <Row className="mb-3 mx-2">
+                            <Form.Label>Nombre</Form.Label>
+                            <Form.Control required type="text" id="nombre" />
+                            <Form.Control.Feedback type="invalid">
+                                Selecciona un nombre correcto
+                            </Form.Control.Feedback>
+                        </Row>
+                        <Row className="mb-3 mx-2">
+                            <Form.Label>Apellido</Form.Label>
+                            <Form.Control required type="text" id="apellido" />
+                            <Form.Control.Feedback type="invalid">
+                                Selecciona un apellido correcto
+                            </Form.Control.Feedback>
+                        </Row>
+                        <Row className="mb-3 mx-2">
+                            <Form.Label>Puesto</Form.Label>
+                            <Form.Control required type="text" id="puesto" />
+                            <Form.Control.Feedback type="invalid">
+                                Selecciona un puesto correcto
+                            </Form.Control.Feedback>
+                        </Row>
+                        <div id="div-buttons-crear">
+                            <Button type="submit" className="m-2">
+                                Crear
+                            </Button>
+                        </div>
+                    </Form>
+                </Modal.Body>
+            </Modal>
         </>
     );
 };
