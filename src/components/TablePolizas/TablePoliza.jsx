@@ -177,8 +177,7 @@ const TablePolizas = () => {
             idPoliza: $("#id-poliza").val(),
             cantidad: $("#cantidad").val(),
             empleado: {
-                nombre: $("#nombre-empleado").val(),
-                apellido: $("#apellido-empleado").val(),
+                idEmpleado: $("#empleados-select").val(),
             },
             inventario: {
                 sku: $("#inventarios-select").val(),
@@ -482,34 +481,28 @@ const TablePolizas = () => {
                             </Form.Control.Feedback>
                         </Row>
                         <Row className="mb-3 mx-2">
-                            <Form.Label>Nombre empleado</Form.Label>
-                            <Form.Control
-                                required
-                                type="text"
-                                placeholder="Nombre empleado"
-                                id="nombre-empleado"
-                                defaultValue={
-                                    polizaEditar && polizaEditar.empleado.nombre
-                                }
-                            />
+                            <Form.Label>Empleado</Form.Label>
+                            <Form.Select id="empleados-select">
+                                {empleados &&
+                                    empleados.map((empleado) => {
+                                        return (
+                                            <option
+                                                key={empleado.idEmpleado}
+                                                value={empleado.idEmpleado}
+                                                selected={
+                                                    polizaEditar &&
+                                                    polizaEditar.empleado
+                                                        .nombre ===
+                                                        empleado.nombre
+                                                }
+                                            >
+                                                {empleado.nombre}
+                                            </option>
+                                        );
+                                    })}
+                            </Form.Select>
                             <Form.Control.Feedback type="invalid">
-                                Escribe un nombre correcto
-                            </Form.Control.Feedback>
-                        </Row>
-                        <Row className="mb-3 mx-2">
-                            <Form.Label>Apellido empleado</Form.Label>
-                            <Form.Control
-                                required
-                                type="text"
-                                placeholder="Apellido empleado"
-                                id="apellido-empleado"
-                                defaultValue={
-                                    polizaEditar &&
-                                    polizaEditar.empleado.apellido
-                                }
-                            />
-                            <Form.Control.Feedback type="invalid">
-                                Escribe un nombre correcto
+                                Selecciona un empleado correcto
                             </Form.Control.Feedback>
                         </Row>
                         <Row className="mb-3 mx-2">
